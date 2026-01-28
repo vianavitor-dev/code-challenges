@@ -22,10 +22,10 @@ public class Lexer {
     public List<LexicalToken> tokenization(String text) {
         System.out.println(text);
 
-        if (!Pattern.matches("^([{]).*([}])$", text)) {
-            System.err.println("Either no start or end found");
-            System.exit(1);
-        }
+//        if (!Pattern.matches("^([{]).*([}])$", text)) {
+//            System.err.println("Either no start or end found");
+//            System.exit(1);
+//        }
 
         int nextCount = 0;
 
@@ -41,7 +41,7 @@ public class Lexer {
             }
 
             if (ch == ',') {
-                tokenList.add(new LexicalToken(TokenName.NEXT, nextCount));
+                tokenList.add(new LexicalToken(TokenName.NEXT, String.valueOf(nextCount)));
                 nextCount ++;
             }
 
