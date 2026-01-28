@@ -13,6 +13,8 @@ public class Lexer {
         KEY,        // example: "A: .....
         VALUE,      // example: ..: "abc"
         NEXT,       // example: ,
+        ARRAY_START,// example: [...
+        ARRAY_END,  // example: ....]
         END,        // example: }
 
     }
@@ -20,12 +22,8 @@ public class Lexer {
     List<LexicalToken> tokenList = new ArrayList<>();
 
     public List<LexicalToken> tokenization(String text) {
+        text = text.replace(" ", "");
         System.out.println(text);
-
-//        if (!Pattern.matches("^([{]).*([}])$", text)) {
-//            System.err.println("Either no start or end found");
-//            System.exit(1);
-//        }
 
         int nextCount = 0;
 
@@ -36,19 +34,8 @@ public class Lexer {
                 tokenList.add(new LexicalToken(TokenName.START, null));
             }
 
-            if (ch == '}') {
-                tokenList.add(new LexicalToken(TokenName.END, null));
-            }
-
-            if (ch == ',') {
-                tokenList.add(new LexicalToken(TokenName.NEXT, String.valueOf(nextCount)));
-                nextCount ++;
-            }
-
-            if (ch == '"') {
-                boolean isKey = tokenList.getLast().name() == TokenName.START
-                        || tokenList.getLast().name() == TokenName.NEXT;
-
+            boolean isKey = tokenList.getLast().name() == TokenName.START || tokenList.getLast().name() == TokenName.NEXT;
+            if (ch == '"' && isKey) {
                 int j = 1;
                 ch = text.charAt(i+j);
                 StringBuilder sb = new StringBuilder();
@@ -60,10 +47,51 @@ public class Lexer {
                     ch = text.charAt(i+j);
                 }
 
-                TokenName current = isKey ? TokenName.KEY : TokenName.VALUE;
-                tokenList.add(new LexicalToken(current, sb.toString()));
+                tokenList.add(new LexicalToken(TokenName.KEY, sb.toString()));
 
-                i+= j;
+                i += j;
+            }
+
+            if (ch == ':') {
+                int j = 1;
+                char end = ',';
+
+                if (ch == '[') {
+                    tokenList.add(new LexicalToken(TokenName.ARRAY_START, null));
+
+                    end = ']';
+                    j++;
+                } else if (ch == '"') {
+
+                    end = '"';
+                    j++;
+                }
+
+                StringBuilder value = new StringBuilder();
+                ch = text.charAt(i+j);
+
+                while (ch != end && ch != '}') {
+                    value.append(ch);
+
+                    j++;
+                    ch = text.charAt(i+j);
+                }
+
+                tokenList.add(new LexicalToken(TokenName.VALUE, value.toString()));
+                i += j;
+            }
+
+            if (ch == ']') {
+                tokenList.add(new LexicalToken(TokenName.ARRAY_END, null));
+            }
+
+            if (ch == ',') {
+                tokenList.add(new LexicalToken(TokenName.NEXT, String.valueOf(nextCount)));
+                nextCount ++;
+            }
+
+            if (ch == '}') {
+                tokenList.add(new LexicalToken(TokenName.END, null));
             }
         }
 
