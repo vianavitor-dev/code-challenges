@@ -10,11 +10,11 @@ public class Parser {
     // TODO: define the grammar
     /*
         <VOBJ>      -> { <KV> }
-        <VOBJ>      -> { <KV2> }
+        <VOBJ>      -> { <KV> <NEXT> }
         <VOBJ>      -> {}
         <KV>        -> <K> : <VTYPE>
-        <KV2>       -> <KV>, <KV>
-        <KV2>       -> <KV>, <KV2>
+        <NEXT>      -> <KV>
+        <NEXT>      -> <KV>, <NEXT>
         <K>         -> "..."
         <VYTPE>     -> <VINT>
         <VYTPE>     -> <VDOUBLE>
@@ -29,8 +29,6 @@ public class Parser {
         # OBSERVATIONS:
         Possible <VTYPE>'s value => "", 0, 0.0, [], {} and NULL
      */
-    // CONSTRAINTS
-    private final String numberConstraint  = "^[-+]?\\d*[.]?\\d*$";
 
     private final Iterator<LexicalToken> token;
     private LexicalToken current;
@@ -56,15 +54,33 @@ public class Parser {
         }
 
         if (!expect(Lexer.TokenName.VALUE)) {
-            System.err.println("the key has no value: value missing");
+            System.err.println("> the key has no value: value missing");
             return;
         }
 
+        // CONSTRAINTS
+        String numberConstraint = "^[-+]?(\\d*[.]?\\d*)$";
+        String nullConstraint = "^([Nn]ull|NULL|[Nn]one)?$";
+        String booleanConstraint = "^([Ff]alse|[Tt]rue)$";
+        String stringConstraint = "^\"(\\w.*)\"$";
+
+        String value = current.value().trim();
+        
         // Example of parsing Value
-        if (current.value().matches(numberConstraint))  {
-            System.out.println("is a number");
-        } else {
-            System.out.println("is a string");
+        if (value.matches(nullConstraint)){
+            System.out.println("- it's empty");
+        }
+        else if (value.matches(booleanConstraint)) {
+            System.out.println("- it's a boolean");
+        }
+        else if (value.matches(stringConstraint)) {
+            System.out.println("- it's a string");
+        }
+        else if (value.matches(numberConstraint))  {
+            System.out.println("- it's a number");
+        }
+        else {
+            System.err.println("> undefined value type");
         }
 
         if (check(Lexer.TokenName.NEXT)) {
@@ -74,16 +90,14 @@ public class Parser {
 
     private void block() {
         if (!expect(Lexer.TokenName.START)) {
-            System.err.println("no start found: '{' missing");
+            System.err.println("> no start found: '{' missing");
             return;
         }
 
-        if (!check(Lexer.TokenName.KEY)) {
-            keyValues();
-        }
+        keyValues();
 
         if (!expect(Lexer.TokenName.END)) {
-            System.err.println("no end found: '}' missing");
+            System.err.println("> no end found: '}' missing");
         }
     }
 
