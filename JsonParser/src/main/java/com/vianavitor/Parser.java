@@ -50,40 +50,36 @@ public class Parser {
         return check(_tokenName);
     }
 
+    private void keyValues() {
+        if (!check(Lexer.TokenName.KEY)) {
+            return;
+        }
+
+        if (!expect(Lexer.TokenName.VALUE)) {
+            System.err.println("the key has no value: value missing");
+            return;
+        }
+
+        // Example of parsing Value
+        if (current.value().matches(numberConstraint))  {
+            System.out.println("is a number");
+        } else {
+            System.out.println("is a string");
+        }
+
+        if (check(Lexer.TokenName.NEXT)) {
+            keyValues();
+        }
+    }
+
     private void block() {
         if (!expect(Lexer.TokenName.START)) {
             System.err.println("no start found: '{' missing");
             return;
         }
 
-        if (check(Lexer.TokenName.KEY)) {
-            if (!expect(Lexer.TokenName.VALUE)) {
-                System.err.println("the key has no value: value missing");
-                return;
-            }
-
-            // Example of parsing Value
-            if (current.value().matches(numberConstraint))  {
-                System.out.println("is a number");
-            } else {
-                System.out.println("is a string");
-            }
-
-            if (check(Lexer.TokenName.NEXT)) {
-                if (check(Lexer.TokenName.KEY)) {
-                    if (!expect(Lexer.TokenName.VALUE)) {
-                        System.err.println("the key has no value: value missing");
-                        return;
-                    }
-
-                    // Example of parsing Value
-                    if (current.value().matches(numberConstraint)) {
-                        System.out.println("is a number");
-                    } else {
-                        System.out.println("is a string");
-                    }
-                }
-            }
+        if (!check(Lexer.TokenName.KEY)) {
+            keyValues();
         }
 
         if (!expect(Lexer.TokenName.END)) {
