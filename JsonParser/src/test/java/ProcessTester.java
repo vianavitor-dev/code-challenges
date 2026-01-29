@@ -12,7 +12,8 @@ public class ProcessTester {
         String[] samples = {
                 "{}", "{ }}", "{ \"A\":\"abc\" }", "{ \"A\":\"abc\", \"B\":\"bcd\" }",
                 "{", "{{}", "{ \"C\": abc }", "{ \"A\":\"abc\", \"B\":\"bcd\", \"C\":\"cde\"  }",
-                "{\n" + "  \"key1\": true,\n" +"  \"key2\": false,\n" +"  \"key3\": null,\n" +"  \"key4\": \"value\",\n" +"  \"key5\": 101\n" +"}"
+                "{\n \"key1\": true,\n  \"key2\": false,\n  \"key3\": null,\n  \"key4\": \"value\",\n  \"key5\": 101\n}",
+                "{\n" + "  \"key\": \"value\",\n" +"  \"key-n\": 101,\n" + "  \"key-o\": {},\n" +"  \"key-l\": []\n" + "}\n"
         };
 
         for (String sample : samples) {

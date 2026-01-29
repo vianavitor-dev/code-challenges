@@ -13,6 +13,8 @@ public class Lexer {
         KEY,        // example: "A: .....
         VALUE,      // example: ..: "abc"
         NEXT,       // example: ,
+        ARRAY,      // example: [ ... ]
+        OBJ,        // example: { ... }
         ARRAY_START,// example: [...
         ARRAY_END,  // example: ....]
         END,        // example: }
@@ -22,7 +24,9 @@ public class Lexer {
     List<LexicalToken> tokenList = new ArrayList<>();
 
     public List<LexicalToken> tokenization(String text) {
+        // TODO: the KEY VALUEs cannot have their spaces replaced
         text = text.replace(" ", "");
+        text = text.replace("\n", "");
         System.out.println(text);
 
         int nextCount = 0;
@@ -34,8 +38,9 @@ public class Lexer {
                 tokenList.add(new LexicalToken(TokenName.START, null));
             }
 
-            boolean isKey = tokenList.getLast().name() == TokenName.START || tokenList.getLast().name() == TokenName.NEXT;
-            if (ch == '"' && isKey) {
+            boolean isKey = ch == '"' && (tokenList.getLast().name() == TokenName.START || tokenList.getLast().name() == TokenName.NEXT);
+
+            if (isKey) {
                 int j = 1;
                 ch = text.charAt(i+j);
                 StringBuilder sb = new StringBuilder();
@@ -46,7 +51,6 @@ public class Lexer {
                     j++;
                     ch = text.charAt(i+j);
                 }
-
                 tokenList.add(new LexicalToken(TokenName.KEY, sb.toString()));
 
                 i += j;
@@ -54,31 +58,59 @@ public class Lexer {
 
             if (ch == ':') {
                 int j = 1;
-                char end = ',';
-
-                if (ch == '[') {
-                    tokenList.add(new LexicalToken(TokenName.ARRAY_START, null));
-
-                    end = ']';
-                    j++;
-                } else if (ch == '"') {
-
-                    end = '"';
-                    j++;
-                }
 
                 StringBuilder value = new StringBuilder();
                 ch = text.charAt(i+j);
 
-                while (ch != end && ch != '}') {
+                if (ch == '"') {
                     value.append(ch);
 
                     j++;
                     ch = text.charAt(i+j);
-                }
 
-                tokenList.add(new LexicalToken(TokenName.VALUE, value.toString()));
-                i += j;
+                    while (ch != '}' && ch != ']' && ch != '"') {
+                        value.append(ch);
+
+                        j++;
+                        ch = text.charAt(i+j);
+                    }
+                    value.append(ch);
+                    tokenList.add(new LexicalToken(TokenName.VALUE, value.toString()));
+                    i += j;
+                } else if (ch == '[') {
+                    tokenList.add(new LexicalToken(TokenName.ARRAY, null));
+                    tokenList.add(new LexicalToken(TokenName.ARRAY_START, null));
+
+                    j++;
+                    ch = text.charAt(i+j);
+
+                    while (ch != '}' && ch != ']') {
+                        value.append(ch);
+
+                        j++;
+                        ch = text.charAt(i+j);
+                    }
+
+                    if (!value.isEmpty()) {
+                        tokenList.add(new LexicalToken(TokenName.VALUE, value.toString()));
+                    }
+
+                    i += j;
+                } else if (ch == '{') {
+                    tokenList.add(new LexicalToken(TokenName.OBJ, null));
+                    continue;
+                } else {
+                    ch = text.charAt(i+j);
+
+                    while (ch != '}' && ch != ']' && ch != ',') {
+                        value.append(ch);
+
+                        j++;
+                        ch = text.charAt(i+j);
+                    }
+                    tokenList.add(new LexicalToken(TokenName.VALUE, value.toString()));
+                    i += j;
+                }
             }
 
             if (ch == ']') {
