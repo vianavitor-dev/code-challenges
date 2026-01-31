@@ -13,7 +13,13 @@ public class ProcessTester {
                 "{}", "{ }}", "{ \"A\":\"abc\" }", "{ \"A\":\"abc\", \"B\":\"bcd\" }",
                 "{", "{{}", "{ \"C\": abc }", "{ \"A\":\"abc\", \"B\":\"bcd\", \"C\":\"cde\"  }",
                 "{\n \"key1\": true,\n  \"key2\": false,\n  \"key3\": null,\n  \"key4\": \"value\",\n  \"key5\": 101\n}",
-                "{\n" + "  \"key\": \"value\",\n" +"  \"key-n\": 101,\n" + "  \"key-o\": {},\n" +"  \"key-l\": []\n" + "}\n"
+                "{\n" + "  \"key\": \"value\",\n" +"  \"key-n\": 101,\n" + "  \"key-o\": {},\n" +"  \"key-l\": []\n" + "}\n",
+                "{ \"key\" : [ 0 ] }",
+                "{ \"key-arr\" : [ \"02\", \"1a\", \"2c\" ] }",
+                "{ \"key-arr\" : [ 2, 1, 2 ] }",
+                "{ \"key-arr\" : [ false, true ] }",
+                "{ \"key-arr\" : [ false, 0 ] }",
+                "{ \"key-obj\" : { \"key-1\": \"val1\", \"key\": null } }",
         };
 
         for (String sample : samples) {

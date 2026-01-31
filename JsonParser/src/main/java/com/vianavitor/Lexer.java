@@ -85,14 +85,42 @@ public class Lexer {
                     ch = text.charAt(i+j);
 
                     while (ch != '}' && ch != ']') {
-                        value.append(ch);
+                        if (ch == ',') {
+                            tokenList.add(new LexicalToken(TokenName.NEXT, null));
+                        }
+                        // insert the array values if it is a string
+                        else if (ch == '"') {
+                            value.append(ch);
+
+                            j++;
+                            char arrayValChar = text.charAt(i+j);
+
+                            while (arrayValChar != '"' && arrayValChar != ']' && arrayValChar != '}') {
+                                value.append(arrayValChar);
+
+                                j++;
+                                arrayValChar = text.charAt(i+j);
+                            }
+
+                            value.append(ch);
+                            tokenList.add(new LexicalToken(TokenName.VALUE, value.toString()));
+                        } else {
+                            char arrayValIntOrBool = text.charAt(i+j);
+
+                            while (arrayValIntOrBool != ',' && arrayValIntOrBool != ']' && arrayValIntOrBool != '}') {
+                                value.append(arrayValIntOrBool);
+
+                                j++;
+                                arrayValIntOrBool = text.charAt(i+j);
+                            }
+
+                            tokenList.add(new LexicalToken(TokenName.VALUE, value.toString()));
+                            j-=1;
+                        }
 
                         j++;
                         ch = text.charAt(i+j);
-                    }
-
-                    if (!value.isEmpty()) {
-                        tokenList.add(new LexicalToken(TokenName.VALUE, value.toString()));
+                        value = new StringBuilder();
                     }
 
                     i += j;

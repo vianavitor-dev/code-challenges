@@ -40,11 +40,21 @@ public class Parser {
         return !is(_tokenName);
     }
 
+    public enum keyValueType {
+        EMPTY(0), BOOL(1), STR(2), NUM(3), UNDEFINED(4);
+
+        private final int val;
+
+        keyValueType(int _val) {
+            this.val = _val;
+        }
+    }
+
     /*
         validate the type of the value, if the type valid returns it else throw an exception
      */
-    private Object validateType(String value) {
-        Object type = null;
+    private keyValueType validateType(String value) {
+        keyValueType type = keyValueType.UNDEFINED;
 
         // CONSTRAINTS
         String numberConstraint    =    "^[-+]?(\\d*[.]?\\d*)$";
@@ -55,18 +65,19 @@ public class Parser {
         // Example of parsing Value
         if (value.matches(nullConstraint)){
             System.out.println("- it's empty");
+            type = keyValueType.EMPTY;
         }
         else if (value.matches(booleanConstraint)) {
             System.out.println("- it's a boolean");
-            type = Boolean.class;
+            type = keyValueType.BOOL;
         }
         else if (value.matches(stringConstraint)) {
             System.out.println("- it's a string");
-            type = String.class;
+            type = keyValueType.STR;
         }
         else if (value.matches(numberConstraint))  {
             System.out.println("- it's a number");
-            type = Number.class;
+            type = keyValueType.NUM;
         }
         else {
             // TODO: throw an exception
@@ -76,23 +87,26 @@ public class Parser {
         return type;
     }
 
-    private void arrayValues(Object _type, String space) {
+    private void arrayValues(keyValueType _type, String space) {
         if (current.name() != Lexer.TokenName.VALUE) {
             return;
         }
         
         String value = current.value().trim();
-        Object currentType = validateType(value);
+        keyValueType currentType = validateType(value);
+
+        // TODO: throw exception
+        if (_type.compareTo(keyValueType.UNDEFINED) != 0 && currentType.compareTo(_type) != 0) {
+            System.err.println(space + "> inconsistent type of array value: expected " + _type + ", returned " + currentType);
+        }
 
         /*
             if there is any other value within this array it checks if the types match, if not it returns an exception
          */
-        if (is(Lexer.TokenName.NEXT)) {
-            // TODO: throw exception
-            if (_type != null && _type != currentType) {
-                System.err.println("> inconsistent type of array value: expected " + _type.toString() + ", returned " + currentType.toString());
+        if (current.name() == Lexer.TokenName.NEXT || is(Lexer.TokenName.NEXT)) {
+            if (is(Lexer.TokenName.VALUE)) {
+                arrayValues(currentType, space + "- ");
             }
-            arrayValues(currentType, space + "- ");
         }
     }
 
@@ -106,16 +120,14 @@ public class Parser {
 
         if (is(Lexer.TokenName.VALUE)) {
             System.out.println(space + current.name());
-            arrayValues(null, " -");
+            arrayValues(keyValueType.UNDEFINED, " -");
         }
         if (current.name() == Lexer.TokenName.ARRAY_END) {
             System.out.println(space + current.name());
             return;
         }
 
-        if (missing(Lexer.TokenName.ARRAY_END)) {
-            System.err.println(space + "> not found array end: ']' missing");
-        }
+        System.err.println(space + "> not found array end: ']' missing");
         System.out.println(space + current.name());
     }
     
@@ -167,14 +179,13 @@ public class Parser {
             keyValues(" ");
 
             // check if this object is null
-        } else if (current.name() == Lexer.TokenName.END ) {
+        }
+        if (current.name() == Lexer.TokenName.END ) {
             System.out.println(space + current.name());
             return;
         }
 
-        if (current.name() != (Lexer.TokenName.END)) {
-            System.err.println(space + "> not found end: '}' missing");
-        }
+        System.err.println(space + "> not found end: '}' missing");
     }
 
     public void analyse() {
