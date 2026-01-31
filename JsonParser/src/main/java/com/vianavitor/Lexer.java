@@ -35,6 +35,7 @@ public class Lexer {
             char ch = text.charAt(i);
 
             if (ch == '{') {
+                tokenList.add(new LexicalToken(TokenName.OBJ, null));
                 tokenList.add(new LexicalToken(TokenName.START, null));
             }
 
@@ -104,7 +105,10 @@ public class Lexer {
 
                             value.append(ch);
                             tokenList.add(new LexicalToken(TokenName.VALUE, value.toString()));
-                        } else {
+                        } else if (ch == '{') {
+                            i -= 1;
+                            break;
+                        }else {
                             char arrayValIntOrBool = text.charAt(i+j);
 
                             while (arrayValIntOrBool != ',' && arrayValIntOrBool != ']' && arrayValIntOrBool != '}') {
@@ -125,7 +129,6 @@ public class Lexer {
 
                     i += j;
                 } else if (ch == '{') {
-                    tokenList.add(new LexicalToken(TokenName.OBJ, null));
                     continue;
                 } else {
                     ch = text.charAt(i+j);
@@ -155,7 +158,7 @@ public class Lexer {
             }
         }
 
-        System.out.println(tokenList);
+//        System.out.println(tokenList);
         return tokenList;
     }
 }

@@ -41,7 +41,7 @@ public class Parser {
     }
 
     public enum keyValueType {
-        EMPTY(0), BOOL(1), STR(2), NUM(3), UNDEFINED(4);
+        EMPTY(0), BOOL(1), STR(2), NUM(3), UNDEFINED(4), OBJ(5), ARR(6);
 
         private final int val;
 
@@ -81,19 +81,27 @@ public class Parser {
         }
         else {
             // TODO: throw an exception
-            System.err.println("> undefined value type");
+            System.err.println("> undefined value type: " + value);
         }
 
         return type;
     }
 
     private void arrayValues(keyValueType _type, String space) {
-        if (current.name() != Lexer.TokenName.VALUE) {
-            return;
+        keyValueType currentType = _type;
+
+        if (current.name() == Lexer.TokenName.OBJ) {
+            block(space + " #");
+            currentType = keyValueType.OBJ;
+
+        } else if (current.name() == Lexer.TokenName.ARRAY) {
+            array(space + " *");
+            currentType = keyValueType.ARR;
+
+        } else if (current.name() == Lexer.TokenName.VALUE) {
+            String value = current.value().trim();
+            currentType = validateType(value);
         }
-        
-        String value = current.value().trim();
-        keyValueType currentType = validateType(value);
 
         // TODO: throw exception
         if (_type.compareTo(keyValueType.UNDEFINED) != 0 && currentType.compareTo(_type) != 0) {
@@ -104,7 +112,7 @@ public class Parser {
             if there is any other value within this array it checks if the types match, if not it returns an exception
          */
         if (current.name() == Lexer.TokenName.NEXT || is(Lexer.TokenName.NEXT)) {
-            if (is(Lexer.TokenName.VALUE)) {
+            if (is(Lexer.TokenName.VALUE) || current.name() == Lexer.TokenName.ARRAY || current.name() == Lexer.TokenName.OBJ) {
                 arrayValues(currentType, space + "- ");
             }
         }
@@ -118,7 +126,7 @@ public class Parser {
 
         System.out.println(space + current.name());
 
-        if (is(Lexer.TokenName.VALUE)) {
+        if (is(Lexer.TokenName.VALUE) || current.name() == Lexer.TokenName.OBJ || current.name() == Lexer.TokenName.ARRAY) {
             System.out.println(space + current.name());
             arrayValues(keyValueType.UNDEFINED, " -");
         }
@@ -180,7 +188,7 @@ public class Parser {
 
             // check if this object is null
         }
-        if (current.name() == Lexer.TokenName.END ) {
+        if (current.name() == Lexer.TokenName.END) {
             System.out.println(space + current.name());
             return;
         }
@@ -190,7 +198,9 @@ public class Parser {
 
     public void analyse() {
         System.out.println("analysing...");
-        block("#");
+        if (is(Lexer.TokenName.OBJ)) {
+            block("#");
+        }
 
         if (token.hasNext()) {
             System.err.println("identified character after end of object!");
